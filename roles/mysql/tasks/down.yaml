@@ -1,0 +1,6 @@
+- name: Disable mysql service
+  become: true
+  systemd:
+    name: "{{ mysql.service.name }}"
+    enabled: no
+  failed_when: no

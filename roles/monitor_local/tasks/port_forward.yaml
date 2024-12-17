@@ -1,0 +1,8 @@
+- name: Loki port forward
+  shell: ssh -fNT -R {{ loki.port }}:127.0.0.1:{{ local.loki_port }} {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }}
+- name: Pyroscope port forward
+  shell: ssh -fNT -R 4040:127.0.0.1:{{ local.pyroscope_port }} {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }}
+- name: Prometheus port forward
+  shell: ssh -fNT -L 202{{ hostvars[item].metrics_num }}:127.0.0.1:{{ fluentbit.prometheus_port }} {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }}
+- name: App metrics port forward
+  shell: ssh -fNT -L 606{{ hostvars[item].metrics_num }}:127.0.0.1:{{ app.metrics.port }} {{ hostvars[item].ansible_user }}@{{ hostvars[item].ansible_host }}

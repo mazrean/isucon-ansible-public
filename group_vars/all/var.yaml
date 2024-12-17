@@ -1,0 +1,80 @@
+user: isucon
+
+repository:
+  repo: git@github.com:mazrean/isucon14.git
+  branch: main
+  directory: /home/isucon/repo
+  app_path: app
+  nginx_path: nginx
+  mysql_path: mysql
+  other_path: other
+  sync_list:
+    - /home/isucon/kataribe.toml
+  ignore_list: []
+
+app:
+  metrics:
+    port: 6060
+    path: /metrics
+  service:
+    name: isuride-go.service
+    file: /etc/systemd/system/isuride-go.service
+  build:
+    cmd: go build -o isuride -ldflags "-s -w" .
+    dir: /home/isucon/webapp/go
+  repo_sync:
+    base: /home/isucon/webapp
+    path_list:
+      - payment_mock/
+      - public/
+      - go/
+      - sql/
+    ignore_list:
+      - sql/3-initial-data.sql.gz
+
+nginx:
+  access_log: /var/log/nginx/access.log
+  service:
+    name: nginx.service
+    file: /lib/systemd/system/nginx.service
+  main_conf: /etc/nginx/nginx.conf
+  repo_sync:
+    base: /etc/nginx
+    path_list:
+      - nginx.conf
+      - conf.d/
+      - sites-available/
+    ignore_list: []
+
+mysql:
+  apparmor: /etc/apparmor.d/usr.sbin.mysqld
+  slow_query_log: /var/log/mysql/slow-query.log
+  long_query_time: 0
+  service:
+    name: mysql.service
+    file: /lib/systemd/system/mysql.service
+  main_conf: /etc/mysql/mysql.conf.d/mysqld.cnf
+  connection:
+    host: 127.0.0.1
+    port: 3306
+    user: isucon
+    password: isucon
+    database: isuride
+  repo_sync:
+    base: /etc/mysql
+    path_list:
+      - my.cnf
+      - conf.d/
+      - mysql.conf.d/
+    ignore_list: []
+
+fluentbit:
+  path: /var/log/flb-storage/
+  prometheus_port: 2021
+
+loki:
+  host: 127.0.0.1
+  port: 9300
+
+monitor_path: /home/mazrean/isucon/monitor
+journald_config: /etc/systemd/journald.conf

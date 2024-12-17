@@ -1,0 +1,21 @@
+- name: Create service directory
+  file:
+    path: /etc/fluent-bit/config
+    state: directory
+    mode: '0755'
+- name: Copy config
+  template:
+    src: templates/{{ item }}
+    dest: /etc/fluent-bit/{{ item }}
+  notify: restart fluentbit
+  with_items:
+    - fluent-bit.conf
+    - parser.conf
+    - config/app_input.conf
+    - config/fluentbit_input.conf
+    - config/loki_output.conf
+    - config/mysql_input.conf
+    - config/nginx_input.conf
+    - config/node_input.conf
+    - config/process_input.conf
+    - config/prometheus_output.conf

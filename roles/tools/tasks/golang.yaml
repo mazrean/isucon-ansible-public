@@ -1,0 +1,17 @@
+- name: Remove golang
+  file:
+    state: absent
+    path: /usr/local/go
+- name: Unarchive golang zip
+  unarchive:
+    src: https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+- name: Add go path
+  become: false
+  lineinfile:
+    dest: ~/.profile
+    line: "{{ item }}"
+  with_items:
+    - export PATH=/usr/local/go/bin:/home/isucon/go/bin:$PATH
+    - export GOROOT=""

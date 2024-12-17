@@ -1,0 +1,16 @@
+- name: reload apparmor
+  become: true
+  systemd:
+    name: apparmor
+    state: reloaded
+- name: reload mysql
+  become: true
+  systemd:
+    daemon_reload: true
+    name: "{{ mysql.service.name }}"
+    state: reloaded
+- name: restart mysql
+  become: true
+  systemd:
+    name: "{{ mysql.service.name }}"
+    state: restarted

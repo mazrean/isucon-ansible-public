@@ -1,0 +1,8 @@
+- import_tasks: install.yaml
+  become: true
+  #when: ansible_distribution_release != 'jammy'
+#- import_tasks: source-build.yaml
+  #become: true
+  #when: ansible_distribution_release == 'jammy'
+- import_tasks: config.yaml
+  become: true

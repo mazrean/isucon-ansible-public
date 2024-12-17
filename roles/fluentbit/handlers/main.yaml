@@ -1,0 +1,6 @@
+- name: restart fluentbit
+  become: true
+  systemd:
+    name: fluent-bit
+    state: restarted
+  when: not ansible_check_mode

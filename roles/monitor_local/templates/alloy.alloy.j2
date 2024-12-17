@@ -1,0 +1,41 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+pyroscope.write "app" {
+  endpoint {
+    url = "http://pyroscope:4040"
+  }
+}
+
+pyroscope.scrape "app" {
+  targets    = [
+    {"__address__" = "host.docker.internal:6061", "service_name" = "isu1"},
+    {"__address__" = "host.docker.internal:6062", "service_name" = "isu2"},
+    {"__address__" = "host.docker.internal:6063", "service_name" = "isu3"},
+  ]
+  forward_to = [pyroscope.write.app.receiver]
+
+  profiling_config {
+    profile.process_cpu {
+      enabled = true
+    }
+
+    profile.godeltaprof_memory {
+      enabled = true
+    }
+
+    profile.godeltaprof_mutex {
+      enabled = true
+    }
+
+    profile.godeltaprof_block {
+      enabled = true
+    }
+
+    profile.goroutine {
+      enabled = true
+    }
+  }
+}

@@ -1,0 +1,12 @@
+[server]
+http_port = 3000
+domain = {{ inventory_hostname }}
+root_url = https://{{ inventory_hostname }}
+enable_gzip = true
+[unified_alerting]
+enabled = true
+[alerting]
+enabled = false
+[external_image_storage]
+provider = local
+[external_image_storage.local]

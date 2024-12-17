@@ -1,0 +1,5 @@
+- name: Makefile setting
+  template:
+    src: templates/.make.env.j2
+    dest: "{{ playbook_dir }}/.make.env"
+    mode: '0755'

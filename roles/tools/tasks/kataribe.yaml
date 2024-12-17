@@ -1,0 +1,19 @@
+- name: Unarchive kataribe zip
+  unarchive:
+    src: https://github.com/matsuu/kataribe/releases/download/{{ kataribe_version }}/kataribe-{{ kataribe_version }}_linux_amd64.zip
+    dest: /tmp
+    remote_src: yes
+- name: Install kataribe
+  copy:
+    remote_src: yes
+    src: /tmp/kataribe
+    dest: /usr/local/bin/kataribe
+    owner: root
+    group: root
+    mode: "0755"
+  when: not ansible_check_mode
+- name: Generate kataribe config
+  become: false
+  shell:
+    cmd: /bin/bash -lc "kataribe -generate"
+    chdir: "~"

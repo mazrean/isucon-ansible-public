@@ -1,0 +1,33 @@
+- name: Install dependencies
+  apt:
+    name:
+      - cmake
+      - flex
+      - libsystemd-dev
+      - libyaml-dev
+      - openssl
+      - pkg-config
+    state: latest
+- name: Download source code
+  become: true
+  unarchive:
+    src: https://github.com/fluent/fluent-bit/archive/refs/tags/v{{ version }}.zip
+    dest: /tmp
+    remote_src: yes
+- name: cmake
+  become: true
+  shell:
+    cmd: cmake ..
+    chdir: /tmp/fluent-bit-{{ version }}/build
+  when: not ansible_check_mode
+- name: Build
+  become: true
+  make:
+    chdir: /tmp/fluent-bit-{{ version }}/build
+  when: not ansible_check_mode
+- name: Install
+  become: true
+  make:
+    chdir: /tmp/fluent-bit-{{ version }}/build
+    target: install
+  when: not ansible_check_mode

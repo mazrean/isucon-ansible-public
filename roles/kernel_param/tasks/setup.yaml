@@ -1,0 +1,11 @@
+- name: Copy kernel params file
+  become: true
+  copy:
+    src: files/isucon.conf
+    dest: /etc/sysctl.d/isucon.conf
+  notify: reload sysctl
+  tags: kernel_param
+- import_tasks: grub.yaml
+  become: true
+  tags: grub
+

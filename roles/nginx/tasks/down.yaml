@@ -1,0 +1,6 @@
+- name: Disable nginx service
+  become: true
+  systemd:
+    name: "{{ nginx.service.name }}"
+    enabled: no
+  failed_when: no

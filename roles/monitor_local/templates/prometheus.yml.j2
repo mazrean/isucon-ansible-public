@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 2s
+  evaluation_interval: 10s
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+        - localhost:9090
+  - job_name: nodes
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - host.docker.internal:2021
+        - host.docker.internal:2022
+        - host.docker.internal:2023
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: ^host.docker.internal:202(.*)
+        replacement: isu${1}
+  - job_name: app
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - host.docker.internal:6061
+        - host.docker.internal:6062
+        - host.docker.internal:6063
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: ^host.docker.internal:606(.*)
+        replacement: isu${1}

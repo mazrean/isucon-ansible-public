@@ -1,0 +1,11 @@
+- name: Set kernel params in grub
+  lineinfile:
+    dest: /etc/default/grub
+    line: GRUB_CMDLINE_LINUX_DEFAULT="quiet splash mitigations=off"
+  register: grub_result
+- name: update-grub
+  shell: update-grub2
+  when: grub_result.changed
+- name: reboot server
+  reboot:
+  when: grub_result.changed

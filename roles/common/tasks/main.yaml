@@ -1,0 +1,20 @@
+- name: Limit log size
+  become: true
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: "{{ journald_config}}"
+    insertafter: ^\[Journal\]
+  with_items:
+    - line: SystemMaxUse=200M
+      regexp: ^SystemMaxUse=
+  notify: restart journald
+- name: Uninstall mlocate
+  become: true
+  apt:
+    name: mlocate
+    state: absent
+- name: Read .profile in .bashrc
+  lineinfile:
+    line: "source ~/.profile"
+    path: /home/{{ user }}/.bashrc

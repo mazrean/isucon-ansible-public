@@ -1,0 +1,23 @@
+- name: Install apt packages
+  apt:
+    name:
+      - git
+      - percona-toolkit
+      - unzip
+      - graphviz
+      - gv
+      - htop
+    state: latest
+    update_cache: yes
+- name: Set git name
+  become: false
+  git_config:
+    name: user.name
+    value: mazrean
+    scope: global
+- name: Set git email
+  become: false
+  git_config:
+    name: user.email
+    value: mazrean@users.noreply.github.com
+    scope: global

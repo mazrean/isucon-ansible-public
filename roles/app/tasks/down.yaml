@@ -1,0 +1,6 @@
+- name: Disable app service
+  become: true
+  systemd:
+    name: "{{ app.service.name }}"
+    enabled: no
+  failed_when: no

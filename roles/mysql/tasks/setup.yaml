@@ -1,0 +1,82 @@
+- name: Set config
+  become: true
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: "{{ mysql.main_conf }}"
+    insertafter: ^\[mysqld\]
+  with_items:
+    - line: bind-address = 0.0.0.0
+      regexp: ^bind-address
+    - line: max_connections = 1024
+      regexp: ^max_connections
+    - line: innodb_buffer_pool_size = 500MB
+      regexp: ^innodb_buffer_pool_size
+    - line: innodb_log_file_size = 400MB
+      regexp: ^innodb_log_file_size
+    - line: innodb_log_buffer_size = 50MB
+      regexp: ^innodb_log_buffer_size
+    - line: innodb_doublewrite = 0
+      regexp: ^innodb_doublewrite
+    - line: innodb_flush_log_at_trx_commit = 0
+      regexp: ^innodb_flush_log_at_trx_commit
+    - line: innodb_flush_method = O_DIRECT
+      regexp: ^innodb_flush_method
+    - line: innodb_sort_buffer_size = 10MB
+      regexp: ^innodb_sort_buffer_size
+    - line: read_buffer_size = 10MB
+      regexp: ^read_buffer_size
+    - line: read_rnd_buffer_size = 10MB
+      regexp: ^read_rnd_buffer_size
+    - line: key_buffer_size = 256MB
+      regexp: ^key_buffer_size
+  notify: reload mysql
+- name: Set mysql8 config
+  become: true
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: "{{ mysql.main_conf }}"
+    insertafter: ^\[mysqld\]
+  with_items:
+    - line: disable-log-bin
+      regexp: ^disable-log-bin
+    - line: innodb_redo_log_capacity = 2147483648
+      regexp: ^innodb_redo_log_capacity
+  tags: mysql8
+- name: Clone repository
+  git:
+    repo: "{{ repository.repo }}"
+    dest: "{{ repository.directory }}"
+    version: "{{ repository.branch }}"
+    force: yes
+    accept_hostkey: yes
+- name: Copy mysql directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ mysql.repo_sync.base }}/{{ item }}"
+    dest: "{{ repository.directory }}/{{ repository.mysql_path }}/{{ item }}"
+  with_items: "{{ mysql.repo_sync.path_list }}"
+  register: mysql_dir_created
+  when: not ansible_check_mode
+- name: Remove ignore mysql files
+  file:
+    path: "{{ repository.directory }}/{{ repository.mysql_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ mysql.repo_sync.ignore_list }}"
+- name: Push repository
+  shell:
+    cmd: /bin/bash -lc "git add . && git commit -m \"mysql conf update\" && git push origin {{ repository.branch }}"
+    chdir: "{{ repository.directory }}"
+  when: mysql_dir_created.changed
+- name: Set service environment variable
+  become: true
+  lineinfile:
+    line: "{{ item.line }}"
+    insertafter: ^\[Service\]
+    regexp: "{{ item.regexp }}"
+    path: "{{ mysql.service.file }}"
+  with_items:
+    - line: LimitNOFILE=infinity
+      regexp: ^LimitNOFILE=

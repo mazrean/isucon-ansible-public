@@ -1,0 +1,37 @@
+- name: Install isuginx
+  shell:
+    cmd: /bin/bash -lc "go install github.com/mazrean/isuginx@{{ isuginx_version }}"
+- name: Run isuginx
+  become: true
+  shell:
+    cmd: /home/isucon/go/bin/isuginx -file {{ nginx.main_conf }} -access-log {{ nginx.access_log }}
+- name: Copy nginx directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ nginx.repo_sync.base }}/{{ item }}"
+    dest: "{{ repository.directory }}/{{ repository.nginx_path }}/{{ item }}"
+  with_items: "{{ nginx.repo_sync.path_list }}"
+  register: nginx_dir_updated
+  when: not ansible_check_mode
+- name: Remove ignore nginx files
+  become: true
+  file:
+    path: "{{ repository.directory }}/{{ repository.nginx_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ nginx.repo_sync.ignore_list }}"
+- name: Push repository
+  shell:
+    cmd: /bin/bash -lc "git add . && git commit --allow-empty -m \"isuginx\" && git push origin {{ repository.branch }}"
+    chdir: "{{ repository.directory }}"
+  when: nginx_dir_updated.changed
+- name: Set service environment variable
+  become: true
+  lineinfile:
+    line: "{{ item.line }}"
+    insertafter: ^\[Service\]
+    regexp: "{{ item.regexp }}"
+    path: "{{ nginx.service.file }}"
+  with_items:
+    - line: LimitNOFILE=infinity
+      regexp: ^LimitNOFILE=

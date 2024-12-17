@@ -1,0 +1,9 @@
+- import_tasks: apt.yaml
+  become: true
+  tags: apt
+- import_tasks: kataribe.yaml
+  become: true
+  tags: kataribe
+- import_tasks: golang.yaml
+  become: true
+  tags: golang

@@ -1,0 +1,27 @@
+- name: Install ca-certificates
+  apt:
+    name:
+      - ca-certificates
+    state: latest
+    update_cache: true
+- name: Add fluent-bit apt-key
+  apt_key:
+    url: https://packages.fluentbit.io/fluentbit.key
+    state: present
+  when: not ansible_check_mode
+- name: Add fluent-bit repository
+  apt_repository:
+    repo: 'deb https://packages.fluentbit.io/ubuntu/{{ ansible_distribution_release }} {{ ansible_distribution_release }} main'
+    state: present
+    update_cache: true
+- name: Install fluentbit
+  apt:
+    name:
+      - fluent-bit
+    state: latest
+  when: not ansible_check_mode
+- name: Start fluentbit
+  systemd:
+    name: fluent-bit
+    state: started
+  when: not ansible_check_mode

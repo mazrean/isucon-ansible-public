@@ -1,0 +1,130 @@
+- name: Create app directory
+  file:
+    path: "{{ repository.directory }}/{{ repository.app_path }}"
+    state: directory
+    mode: "0755"
+- name: Copy app directory
+  copy:
+    remote_src: yes
+    src: "{{ app.repo_sync.base }}/{{ item }}"
+    dest: "{{ repository.directory }}/{{ repository.app_path }}/{{ item }}"
+    force: no
+  with_items: "{{ app.repo_sync.path_list }}"
+  register: app_dir_created
+  when: not ansible_check_mode
+- name: Remove ignore app files
+  file:
+    path: "{{ repository.directory }}/{{ repository.app_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ app.repo_sync.ignore_list }}"
+- name: Create nginx directory
+  file:
+    path: "{{ repository.directory }}/{{ repository.nginx_path }}"
+    state: directory
+    mode: "0755"
+- name: Copy nginx directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ nginx.repo_sync.base }}/{{ item }}"
+    dest: "{{ repository.directory }}/{{ repository.nginx_path }}/{{ item }}"
+    force: no
+    mode: '0644'
+    directory_mode: '0755'
+    owner: '{{ user }}'
+    group: '{{ user }}'
+  with_items: "{{ nginx.repo_sync.path_list }}"
+  when: not ansible_check_mode
+  register: nginx_dir_created
+- name: Remove ignore nginx files
+  file:
+    path: "{{ repository.directory }}/{{ repository.nginx_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ nginx.repo_sync.ignore_list }}"
+- name: Create mysql directory
+  file:
+    path: "{{ repository.directory }}/{{ repository.mysql_path }}"
+    state: directory
+    mode: "0755"
+- name: Copy mysql directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ mysql.repo_sync.base }}/{{ item }}"
+    dest: "{{ repository.directory }}/{{ repository.mysql_path }}/{{ item }}"
+    force: no
+    mode: '0644'
+    directory_mode: '0755'
+  with_items: "{{ mysql.repo_sync.path_list }}"
+  register: mysql_dir_created
+  when: not ansible_check_mode
+- name: Remove ignore mysql files
+  file:
+    path: "{{ repository.directory }}/{{ repository.mysql_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ mysql.repo_sync.ignore_list }}"
+- name: Create other directory
+  file:
+    path: "{{ repository.directory }}/{{ repository.other_path }}"
+    state: directory
+    mode: "0755"
+- name: Copy other directory
+  copy:
+    remote_src: yes
+    src: "{{ item }}"
+    dest: "{{ repository.directory }}/{{ repository.other_path }}/{{ item | basename }}"
+    force: no
+  with_items: "{{ repository.sync_list }}"
+  register: sync_result
+  when: not ansible_check_mode
+- name: Remove ignore nginx files
+  file:
+    path: "{{ repository.directory }}/{{ repository.nginx_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ nginx.repo_sync.ignore_list }}"
+- name: Push repository
+  shell:
+    cmd: /bin/bash -lc "git add . && git commit -m \"init\" && git push origin {{ repository.branch }}"
+    chdir: "{{ repository.directory }}"
+  when:
+    - app_dir_created.changed or nginx_dir_created.changed or mysql_dir_created.changed or sync_result.changed
+    - not ansible_check_mode
+- name: Copy app directory
+  copy:
+    remote_src: yes
+    src: "{{ repository.directory }}/{{ repository.app_path }}/{{ item }}"
+    dest: "{{ app.repo_sync.base }}/{{ item }}"
+    mode: '777'
+  with_items: "{{ app.repo_sync.path_list }}"
+  when: not ansible_check_mode
+- name: Copy nginx directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ repository.directory }}/{{ repository.nginx_path }}/{{ item }}"
+    dest: "{{ nginx.repo_sync.base }}/{{ item }}"
+    mode: '666'
+    owner: '{{ user }}'
+    group: '{{ user }}'
+  with_items: "{{ nginx.repo_sync.path_list }}"
+  when: not ansible_check_mode
+- name: Copy mysql directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ repository.directory }}/{{ repository.mysql_path }}/{{ item }}"
+    dest: "{{ mysql.repo_sync.base }}/{{ item }}"
+    mode: '644'
+    owner: '{{ user }}'
+    group: '{{ user }}'
+  with_items: "{{ mysql.repo_sync.path_list }}"
+  when: not ansible_check_mode
+- name: Copy other directory
+  become: true
+  copy:
+    remote_src: yes
+    src: "{{ repository.directory }}/{{ repository.other_path }}/{{ item | basename }}"
+    dest: "{{ item }}"
+    mode: '666'
+  with_items: "{{ repository.sync_list }}"
+  when: not ansible_check_mode

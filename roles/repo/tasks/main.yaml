@@ -1,0 +1,9 @@
+- name: Clone repository
+  git:
+    repo: "{{ repository.repo }}"
+    dest: "{{ repository.directory }}"
+    version: "{{ repository.branch }}"
+    force: yes
+    accept_hostkey: yes
+- import_tasks: setup.yaml
+  when: inventory_hostname == "isu1"

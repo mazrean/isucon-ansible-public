@@ -1,0 +1,52 @@
+- hosts: localhost
+  roles:
+    - role: makefile
+      tags: makefile
+- hosts: isucon
+  roles:
+    - role: common
+      tags: common
+    - role: tools
+      tags: tools
+    - role: repo
+      tags: repo
+    - role: kernel_param
+      tags: kernel_param
+    - role: fluentbit
+      tags: fluentbit
+- hosts: app
+  roles:
+    - role: app
+      vars:
+        up: true
+      tags: app
+- hosts: active:!app
+  roles:
+    - role: app
+      vars:
+        up: false
+      tags: app_down
+- hosts: mysql
+  roles:
+    - role: mysql
+      vars:
+        up: true
+      tags: mysql
+- hosts: active:!mysql
+  roles:
+    - role: mysql
+      vars:
+        up: false
+      tags: mysql_down
+- hosts: nginx
+  roles:
+    - role: nginx
+      vars:
+        up: true
+      tags: nginx
+- hosts: active:!nginx
+  roles:
+    - role: nginx
+      vars:
+        up: false
+      tags: nginx_down

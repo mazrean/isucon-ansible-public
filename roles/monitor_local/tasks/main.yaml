@@ -1,0 +1,65 @@
+- name: Create service directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  with_items:
+    - "{{ monitor_path }}"
+    - "{{ monitor_path }}/grafana"
+    - "{{ monitor_path }}/grafana/data"
+    - "{{ monitor_path }}/prometheus"
+    - "{{ monitor_path }}/prometheus/data"
+    - "{{ monitor_path }}/loki"
+    - "{{ monitor_path }}/loki/data"
+    - "{{ monitor_path }}/pyroscope"
+    - "{{ monitor_path }}/pyroscope/data"
+    - "{{ monitor_path }}/alloy"
+    - "{{ monitor_path }}/alloy/data"
+
+- name: Copy loki configuration
+  template:
+    src: templates/loki.yaml.j2
+    dest: "{{ monitor_path }}/loki/loki.yaml"
+  notify: restart monitor
+
+- name: Copy pyroscope configuration
+  template:
+    src: templates/pyroscope.yaml.j2
+    dest: "{{ monitor_path }}/pyroscope/config.yaml"
+  notify: restart monitor
+
+- name: Copy alloy configuration
+  template:
+    src: templates/alloy.alloy.j2
+    dest: "{{ monitor_path }}/alloy/config.alloy"
+  notify: restart monitor
+
+- name: Copy prometheus configuration
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ monitor_path }}/prometheus/prometheus.yml"
+  notify: restart monitor
+
+- name: Copy grafana configuration
+  template:
+    src: grafana_custom.ini.j2
+    dest: "{{ monitor_path }}/grafana/grafana.ini"
+  notify: restart monitor
+
+- name: Copy monitor compose.yml
+  template:
+    src: compose.yaml.j2
+    dest: "{{ monitor_path }}/compose.yaml"
+
+- name: Run monitor compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitor_path }}"
+    state: present
+
+- name: SSH port forwarding
+  include_tasks:
+    file: port_forward.yaml
+  loop: "{{ groups['isucon'] }}"
+  loop_control:
+    index_var: idx
+
